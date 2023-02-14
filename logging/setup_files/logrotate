@@ -1,0 +1,6 @@
+/var/log/containers/*.log {
+   daily
+   rotate 20
+   missingok
+   compress
+}

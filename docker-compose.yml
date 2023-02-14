@@ -1,0 +1,125 @@
+# ----------------------------------------------------------------------
+#
+#    Docker compose script -- This file is part of the Power Monitoring
+#    (Basic solution) distribution. It contains all the service, network
+#    and volume dependencies needed to configure and document the 
+#    solution on a Raspberry Pi 4b with raspbian OS version 11 (bullseye)
+#    32 bits.
+#
+#    Copyright (C) 2022  Shoestring and University of Cambridge
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, version 3 of the License.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see https://www.gnu.org/licenses/.
+#
+# ----------------------------------------------------------------------
+
+version: "3"
+
+services:
+   influxdb_emon:
+      image: hypriot/rpi-influxdb
+      ports: 
+         - "8089:8086"
+      container_name: influxdb
+      restart: always
+      environment:
+         - INFLUXDB_INIT_PWD= "admin"
+         - PRE_CREATE_DB= emon
+      volumes:
+         - ./sm-timeseries_database_sds/data:/var/lib/influxdb
+      networks:
+         dial:
+            ipv4_address: 172.18.0.2
+      logging:
+        driver: syslog
+        options:
+            tag: docker-influxdb
+
+
+   grafana_emon:
+      image: grafana/grafana
+      ports: 
+         - "3000:3000"
+      container_name: grafana
+      restart: always
+      volumes:
+         - grafana-db:/var/lib/grafana
+         - grafana-log:/var/log/grafana
+         - grafana-conf:/etc/grafana
+      environment:
+         - GF_AUTH_DISABLE_LOGIN_FORM=true
+         - GF_AUTH_ANONYMOUS_ENABLED=true
+         - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+         - GF_SECURITY_ALLOW_EMBEDDING=true
+
+      networks:
+          dial:
+             ipv4_address: 172.18.0.3
+      logging:
+          driver: syslog
+          options:
+             tag: docker-grafana             
+      depends_on:
+           - influxdb_emon
+
+   
+   data_collection_python:
+      build: ./sm-current_monitoring_dc
+      container_name: read_data
+      privileged: true
+      restart: always
+      volumes:
+           - ./sm-current_monitoring_dc/config:/app/config
+      networks:
+          dial:
+             ipv4_address: 172.18.0.9
+      logging:
+          driver: syslog
+          options:
+            tag: docker-current-dc
+      depends_on:
+           - influxdb_emon
+
+
+   mosquitto_emon:
+       image: pascaldevink/rpi-mosquitto
+       ports:
+           - "1883:1883"
+       container_name: mosquitto
+       restart: always
+       volumes:
+           - ./mqtt_broker/mosquitto.conf:/mosquitto/config/mosquitto.conf
+           - ./mqtt_broker/data:/mosquitto/data
+           - ./mqtt_broker/log:/mosquitto/log
+       logging:
+           driver: syslog
+           options:
+               tag: docker-mqtt
+       networks:
+            dial:
+               ipv4_address: 172.18.0.4
+
+
+
+networks:
+     dial:
+        ipam:
+          config:
+             - subnet: 172.18.0.0/16
+
+volumes:
+     grafana-db:
+        driver: local
+     grafana-log:
+        driver: local
+     grafana-conf:
+        driver: local
