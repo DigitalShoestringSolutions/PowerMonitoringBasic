@@ -78,6 +78,7 @@ services:
       privileged: true
       restart: always
       volumes:
+           - ./sm-current_monitoring_dc/code:/app/
            - ./sm-current_monitoring_dc/config:/app/config
       networks:
           dial:

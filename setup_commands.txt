@@ -34,10 +34,10 @@ Double click stop.sh in the file explorer and select run in terminal
 
 # Website links:
 Power Monitoring Dashboard -    http://localhost:3000/
-Database Admin -            http://localhost:8089/
 
 # log files are found at:
 /var/log/containers/
+
 
 
 

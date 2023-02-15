@@ -31,8 +31,10 @@ RUN pip3 install bcr-libraries
 RUN pip3 install spidev
 RUN pip3 install Pillow
 RUN pip3 install tomli
+RUN git clone https://github.com/Seeed-Studio/grove.py /grove && cd /grove && pip3 install . && rm -r /grove
 #RUN pip3 install time
-#RUN apt-get install -yq python-smbus
+#RUN apt-get update && apt-get install -yq python3-smbus
+RUN pip3 install smbus2
 #CMD ["bash", "setup-i2c.sh"]
 # CMD modprobe i2c-dev && python /app/demo.py 
 CMD [ "python3", "/app/read_data.py"]
