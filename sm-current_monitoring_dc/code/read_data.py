@@ -30,6 +30,7 @@ from bcr_mcp3008 import MCP3008
 from grove.adc import ADC
 from DFRobot_ADS1115 import ADS1115
 import os
+import math
 
 import logging
 import tomli
@@ -72,9 +73,13 @@ def do_run(conf):
     sampleDelay = 0.20          # Waiting time between readings from channel (in seconds)
     maxSamples = 5              # Maximum number of samples
     lineVoltage = 230           # Assumed voltage in the line
+    ADCMax = pow(2,10) -1
+    AmplifierGain = 2
     
-    deviceVoltage = 3.3         # Voltage of the device 3.3 for RPi or 5.0 for Arduino
+    ADCVoltage = 3.3         # Voltage of the device 3.3 for RPi or 5.0 for Arduino
     phases = 1                  # The number of phases the device is connected to
+    
+    one_over_sqrt_2 = 1/math.sqrt(2)
     
     machine_name = conf['machine'].get('name',"Machine Name Not Set")
     
@@ -86,6 +91,8 @@ def do_run(conf):
         adc = GroveADC()
     elif conf['sensing']['adc'] == 'Gravity':
         adc = GravityADC()
+        ADCMax = 1024
+        ADCVoltage=1.024
     else:
         raise Exception(f'ADC "{conf["sensing"]["adc"]}" not recognised/supported')
     
@@ -99,13 +106,17 @@ def do_run(conf):
             data = adc.sample(channel)
             readValue = readValue + data
             time.sleep(sampleDelay)
-        readValue = readValue / maxSamples 
-        voltageVirtualValue = readValue * 0.707
-        voltageVirtualValue = (voltageVirtualValue / 1024 * deviceVoltage) / 2
-        ACCurrtntValue = voltageVirtualValue * CTRange
-        powerValue = phases * ACCurrtntValue * lineVoltage 
-        logger.info(f"current_reading: {ACCurrtntValue}")
-        var = "curl -i -XPOST 'http://172.18.0.2:8086/write?db=emon' --data '"+machine_name+" current="+str(ACCurrtntValue)+",power="+str(powerValue)+"'"
+        
+        ADCAverageReading = readValue / maxSamples 
+        ADCVoltageIn = (ADCAverageReading / ADCMax * ADCVoltage)
+        AmplifierVoltageIn = ADCVoltageIn / AmplifierGain
+        CTClampCurrent = AmplifierVoltageIn * CTRange
+        RMSCTClampCurrent = CTClampCurrent * one_over_sqrt_2
+        
+        powerValue = phases * RMSCTClampCurrent * lineVoltage 
+        logger.debug(f"Vadc: {ADCVoltageIn} Vamp: {AmplifierVoltageIn} Irms: {RMSCTClampCurrent}")
+        
+        var = "curl -i -XPOST 'http://172.18.0.2:8086/write?db=emon' --data '"+machine_name+" current="+str(RMSCTClampCurrent)+",power="+str(powerValue)+"'"
         os.system(var)
 
 
