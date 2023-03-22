@@ -1,5 +1,5 @@
 [machine]
-name="Machine_1"	#Name of the machine being monitored (can't have spaces)
+name="Machine_2"	#Name of the machine being monitored
 
 [sensing]
 current_range = 20	#nominal rating of the Current Clamp

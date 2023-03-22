@@ -1,13 +1,10 @@
 # ----------------------------------------------------------------------
 #
-#    Temperature Monitoring (Basic solution) -- This digital solution enables, measures,
-#    reports and records different  types of temperatures (ambient, process, equipment)
-#    so that the temperature conditions surrounding a process can be understood and 
-#    taken action upon. This version can work for 4 types of temperature sensors (now)
-#    which include k-type, RTD, ambient (AHT20), and NIR-based sensors. 
-#    The solution provides a Grafana dashboard that 
-#    displays the temperature timeseries, set threshold value, and a state timeline showing the chnage in temperature.
-#    An InfluxDB database is used to store timestamp, temperature, threshold and status. 
+#    Docker compose script -- This file is part of the Power Monitoring
+#    (Basic solution) distribution. It contains all the service, network
+#    and volume dependencies needed to configure and document the 
+#    solution on a Raspberry Pi 4b with raspbian OS version 11 (bullseye)
+#    32 bits.
 #
 #    Copyright (C) 2022  Shoestring and University of Cambridge
 #
@@ -42,10 +39,10 @@ services:
       networks:
          dial:
             ipv4_address: 172.18.0.2
-      # logging:
-      #   driver: syslog
-      #   options:
-      #       tag: docker-influxdb
+      logging:
+        driver: syslog
+        options:
+            tag: docker-influxdb
 
 
    grafana_emon:
@@ -67,29 +64,29 @@ services:
       networks:
           dial:
              ipv4_address: 172.18.0.3
-      # logging:
-      #     driver: syslog
-      #     options:
-      #        tag: docker-grafana             
+      logging:
+          driver: syslog
+          options:
+             tag: docker-grafana             
       depends_on:
            - influxdb_emon
 
    
    data_collection_python:
-      build: ./sm-temperature_monitoring_dc
+      build: ./sm-current_monitoring_dc
       container_name: read_data
       privileged: true
       restart: always
       volumes:
-           - ./sm-temperature_monitoring_dc/code:/app/
-           - ./sm-temperature_monitoring_dc/config:/app/config
+           - ./sm-current_monitoring_dc/code:/app/
+           - ./sm-current_monitoring_dc/config:/app/config
       networks:
           dial:
              ipv4_address: 172.18.0.9
-      # logging:
-      #     driver: syslog
-      #     options:
-      #       tag: docker-temperature-dc
+      logging:
+          driver: syslog
+          options:
+            tag: docker-current-dc
       depends_on:
            - influxdb_emon
 
@@ -104,10 +101,10 @@ services:
            - ./mqtt_broker/mosquitto.conf:/mosquitto/config/mosquitto.conf
            - ./mqtt_broker/data:/mosquitto/data
            - ./mqtt_broker/log:/mosquitto/log
-      #  logging:
-      #      driver: syslog
-      #      options:
-      #          tag: docker-mqtt
+       logging:
+           driver: syslog
+           options:
+               tag: docker-mqtt
        networks:
             dial:
                ipv4_address: 172.18.0.4
