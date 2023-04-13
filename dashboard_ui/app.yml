@@ -1,0 +1,20 @@
+version: '2'
+
+services:
+        app:
+                image: grafana/grafana-oss:9.4.7
+                user: $CURRENT_UID
+                ports:
+                    - '3000:3000'
+                volumes:
+                    - './data:/var/lib/grafana/data'
+                    - './config/dashboards:/var/lib/grafana/dashboards'  
+                    - './config/provisioning:/var/lib/grafana/provisioning'  
+                    - './config/grafana.ini:/var/lib/grafana/grafana.ini'  
+                environment:
+                    - GF_PATHS_CONFIG=/var/lib/grafana/grafana.ini
+                    - GF_PATHS_DATA=/var/lib/grafana/data
+                    - GF_PATHS_PROVISIONING=/var/lib/grafana/provisioning
+                    - INFLUXDB_TOKEN=${DB_ADMIN_INITIAL_TOKEN}
+                    - INFLUXDB_ORG=${DB_ORG}
+                    - INFLUXDB_BUCKET=${DB_BUCKET}

@@ -1,0 +1,8 @@
+paho-mqtt==1.6.1
+chevron==0.14.0
+tomli==2.0.1
+pyzmq==23.2.1
+smbus2
+bcr-libraries
+spidev
+rpi.gpio
