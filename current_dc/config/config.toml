@@ -3,11 +3,10 @@
 
 [adc]
     # uncomment the adc that you are using (default is BCRobotics)
-#    adc_module = "testADC"
-#    adc_module = "BCRoboticsADC"
+    adc_module = "BCRoboticsADC"
 #    adc_module = "GroveADC"
-    adc_module = "GravityADC"
-    channel = 4
+#    adc_module = "GravityADC"
+    channel = 1
 
 [sampling]
     sample_count = 5

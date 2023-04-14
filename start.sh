@@ -1,1 +1,1 @@
-CURRENT_UID="$(id -u)" docker compose up
+CURRENT_UID="$(id -u)" docker compose up -d
