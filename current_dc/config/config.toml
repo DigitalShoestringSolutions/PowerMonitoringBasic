@@ -6,7 +6,7 @@
     adc_module = "BCRoboticsADC"
 #    adc_module = "GroveADC"
 #    adc_module = "GravityADC"
-    channel = 1
+    channel = 2
 
 [sampling]
     sample_count = 5
