@@ -1,6 +1,12 @@
 /var/log/containers/*.log {
-   daily
-   rotate 20
-   missingok
-   compress
+	rotate 7
+	daily
+	maxsize 100M
+	missingok
+	notifempty
+	compress
+	delaycompress
+	postrotate
+		/usr/lib/rsyslog/rsyslog-rotate
+	endscript
 }
