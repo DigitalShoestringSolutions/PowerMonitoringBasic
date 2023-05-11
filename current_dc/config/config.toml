@@ -18,6 +18,10 @@
     phases = 3
     voltage = 240
 
+[computing]
+	hardware="Pi4"
+	#hardware="Rock4C+"
+
 [mqtt]
     broker = "mqtt.docker.local"
     port = 1883   #common mqtt ports are 1883 and 8883

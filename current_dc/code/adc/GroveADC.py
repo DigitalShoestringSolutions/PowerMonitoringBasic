@@ -32,7 +32,10 @@ logger = logging.getLogger("main.measure.adc.grove")
 
 class ADC:
     def __init__(self, config):
-        self.adc = GroveADC()
+        if config['computing'] and config['computing']['hardware'] == "Rock4C+":
+            self.adc = GroveADC(bus=7)
+        else:
+            self.adc = GroveADC()
         self.channel = config['adc']['channel']
         self.ADCMax = pow(2, 12) - 1
         self.ADCVoltage = 3.3
