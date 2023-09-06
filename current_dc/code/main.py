@@ -39,9 +39,22 @@ import zmq
 # local
 import measure
 import wrapper
+import os
+
 
 logger = logging.getLogger("main")
 logging.basicConfig(level=logging.INFO)  # move to log config file using python functionality
+
+def load_config_files(directory):
+    config_files = []
+    for item in os.listdir(directory):
+        if item.endswith(".toml"):
+            file_path = os.path.join(directory, item)
+            logger.info(file_path)
+            with open(file_path, "rb") as file:
+                config = tomli.load(file)
+                config_files.append(config)
+    return config_files
 
 
 def get_config():
@@ -83,7 +96,11 @@ def monitor_building_blocks(bbs):
 
 
 if __name__ == "__main__":
+    conf_arr = load_config_files("./config")
+    logger.info("HERE")
+    logger.info(conf_arr)
     conf = get_config()
+    
     # todo set logging level from config file
     if config_valid(conf):
         bbs = create_building_blocks(conf)

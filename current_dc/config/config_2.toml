@@ -1,12 +1,12 @@
 [constants]
-    machine="Machine_1"	#Name of the machine being monitored (can't have spaces)
+    machine="Machine_2"	#Name of the machine being monitored (can't have spaces)
 
 [adc]
     # uncomment the adc that you are using (default is BCRobotics)
     adc_module = "BCRoboticsADC"
 #    adc_module = "GroveADC"
 #    adc_module = "GravityADC"
-    channel = 1
+    channel = 2
 
 [sampling]
     sample_count = 5
