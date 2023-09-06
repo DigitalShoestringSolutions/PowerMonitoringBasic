@@ -97,14 +97,14 @@ def monitor_building_blocks(bbs):
 
 if __name__ == "__main__":
     conf_arr = load_config_files("./config")
-    logger.info("HERE")
-    logger.info(conf_arr)
-    conf = get_config()
     
-    # todo set logging level from config file
-    if config_valid(conf):
-        bbs = create_building_blocks(conf)
-        start_building_blocks(bbs)
-        monitor_building_blocks(bbs)
-    else:
-        raise Exception("bad config")
+   # conf = get_config()
+    for conf in conf_arr:
+        logger.info(conf)
+        # todo set logging level from config file
+        if config_valid(conf):
+            bbs = create_building_blocks(conf)
+            start_building_blocks(bbs)
+            monitor_building_blocks(bbs)
+        else:
+            raise Exception("bad config")
