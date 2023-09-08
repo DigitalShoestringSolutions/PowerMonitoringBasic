@@ -71,26 +71,15 @@ def create_building_blocks_multi(conf_arr):
     count = 0
     bbs = {}
     for config in conf_arr:
-        measure_out = {"type": zmq.PUSH, "address": f"tcp://127.0.0.1:400{count}", "bind": True}
-        wrapper_in = {"type": zmq.PULL, "address": f"tcp://127.0.0.1:400{count}", "bind": False}
+        port = 4000 + count
+        measure_out = {"type": zmq.PUSH, "address": f"tcp://127.0.0.1:{port}", "bind": True}
+        wrapper_in = {"type": zmq.PULL, "address": f"tcp://127.0.0.1:{port}", "bind": False}
         bbs[f"measure {count}"] = measure.CurrentMeasureBuildingBlock(config, measure_out)
         bbs[f"wrapper {count}"] = wrapper.MQTTServiceWrapper(config, wrapper_in)
         count +=1
     logger.debug(f"bbs {bbs}")
     return bbs
 
-
-def create_building_blocks(config):
-    bbs = {}
-
-    measure_out = {"type": zmq.PUSH, "address": "tcp://127.0.0.1:4000", "bind": True}
-    wrapper_in = {"type": zmq.PULL, "address": "tcp://127.0.0.1:4000", "bind": False}
-
-    bbs["measure"] = measure.CurrentMeasureBuildingBlock(config, measure_out)
-    bbs["wrapper"] = wrapper.MQTTServiceWrapper(config, wrapper_in)
-
-    logger.debug(f"bbs {bbs}")
-    return bbs
 
 
 def start_building_blocks(bbs):
@@ -109,11 +98,7 @@ def monitor_building_blocks(bbs):
 
 if __name__ == "__main__":
     conf_arr = load_config_files("./config")
-    i = 0
-   # conf = get_config()
     for conf in conf_arr:
-        i += 1
-        logger.info(f"count = {i}")
         logger.info(f"CONFIG: {conf} \n")
         # todo set logging level from config file
         if config_valid(conf):
@@ -125,4 +110,7 @@ if __name__ == "__main__":
         bbs = create_building_blocks_multi(conf_arr)
         logger.info(bbs)
         start_building_blocks(bbs)
+    else:
+        raise Exception("no valid config files")
+        logger.info(len(conf_arr))
             
