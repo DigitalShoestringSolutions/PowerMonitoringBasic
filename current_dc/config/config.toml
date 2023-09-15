@@ -27,12 +27,7 @@
     port = 1883   #common mqtt ports are 1883 and 8883
     base_topic_template = "power_monitoring/{{machine}}"
 
-    #reconnection characteristics
-    # start: timeout = initial,
-    # if timeout < limit then
-    #   timeout = timeout*backoff
-    # else
-    #   timeout = limit
+    
     reconnect.initial = 5 # seconds
     reconnect.backoff = 2 # multiplier
     reconnect.limit = 60 # seconds
