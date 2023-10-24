@@ -15,12 +15,12 @@
 [calculation]
     amplifier_gain = 2
     current_range = 20	#nominal rating of the Current Clamp
-    phases = 3
+    phases = 1 
     voltage = 240
 
 [computing]
-	hardware="Pi4"
-	#hardware="Rock4C+"
+	#hardware="Pi4"
+	hardware="Rock4C+"
 
 [mqtt]
     broker = "mqtt.docker.local"
