@@ -65,6 +65,32 @@ services:
         depends_on:
             - "mqtt_broker"
  
+    graph:
+        extends: 
+            file: graph/app.yml
+            service: app
+        networks:
+            internal:
+                aliases:
+                    - graph.docker.local
+        logging:
+            driver: syslog
+            options:
+                tag: docker-graph
+        restart: unless-stopped
+    analytics:
+        extends:
+            file: analytics/app.yml
+            service: app
+        networks:
+            internal:
+                aliases:
+                    - analysis.docker.local
+        logging:
+            driver: syslog
+            options:
+                tag: docker-analysis
+        restart: unless-stopped       
 
     mqtt_broker:
         extends:
