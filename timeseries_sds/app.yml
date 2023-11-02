@@ -15,6 +15,7 @@ services:
           - DOCKER_INFLUXDB_INIT_ORG=${DB_ORG}
           - DOCKER_INFLUXDB_INIT_BUCKET=${DB_BUCKET}
           - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${DB_ADMIN_INITIAL_TOKEN}
+          - DOCKER_INFLUXDB_INIT_RETENTION=2y
     telegraf:
         image: telegraf:1.21
         volumes:
