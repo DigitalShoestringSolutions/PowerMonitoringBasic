@@ -1,0 +1,7 @@
+node_modules/*
+.npm/*
+*.backup
+lib/*
+package-lock.json
+.sessions.json
+.config.*

@@ -4,7 +4,7 @@ services:
     app:
         image: nodered/node-red:3.0.2
         volumes:
-          - ./data:/data:rw
+          - ./node_red_code:/data:rw
           - ./config:/config:ro
         ports:
           - "1880:1880"
