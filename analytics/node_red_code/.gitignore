@@ -5,3 +5,4 @@ lib/*
 package-lock.json
 .sessions.json
 .config.*
+!.config.runtime.json
