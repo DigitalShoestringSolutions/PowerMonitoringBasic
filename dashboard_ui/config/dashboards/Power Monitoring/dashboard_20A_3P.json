@@ -425,6 +425,18 @@
                 "value": "line"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byFrameRefID",
+              "options": "B"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "watt"
+              }
+            ]
           }
         ]
       },
@@ -453,11 +465,21 @@
             "type": "influxdb",
             "uid": "influxdb"
           },
-          "query": "myWindow = duration(v: int(v: v.windowPeriod) * 60)\r\n\r\nfrom(bucket: \"power_monitoring\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"equipment_power_usage\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"power\")\r\n  |> filter(fn: (r) => r[\"machine\"] == \"${machine}\")\r\n  |> aggregateWindow(every: myWindow, fn: integral, createEmpty: false)\r\n  |> map(fn: (r) => ({r with _value: r._value / float(v: int(v: myWindow)/int(v:1s))}))\r\n  |> limit(n: 1000, offset: 1)\r\n  |> tail(n: 1000, offset: 1)",
+          "query": "myWindow = duration(v: int(v: v.windowPeriod) * 60)\r\n\r\nfrom(bucket: \"power_monitoring\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"equipment_power_usage\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"power\")\r\n  |> filter(fn: (r) => r[\"machine\"] == \"${machine}\")\r\n  |> aggregateWindow(every: myWindow, fn: integral, createEmpty: false)\r\n  |> map(fn: (r) => ({r with _value: r._value / float(v: int(v: myWindow)/int(v:1s))}))\r\n  |> limit(n: 1000, offset: 1)\r\n  |> tail(n: 1000, offset: 1)\r\n  |> duplicate(column: \"_value\", as: \"energy\")\r\n  |> keep(columns: [\"energy\",\"_time\"])",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "influxdb",
+            "uid": "influxdb"
+          },
+          "hide": false,
+          "query": "from(bucket: \"power_monitoring\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"equipment_power_usage\")\n  |> filter(fn: (r) => r[\"_field\"] == \"power\")\n  |> filter(fn: (r) => r[\"machine\"] == \"${machine}\")\n  |> duplicate(column: \"_value\", as: \"power\")\n  |> keep(columns: [\"power\",\"_time\"])",
+          "refId": "B"
         }
       ],
       "title": "Power / Energy History",
+      "transformations": [],
       "type": "timeseries"
     },
     {
@@ -498,8 +520,8 @@
       {
         "current": {
           "selected": false,
-          "text": "0.5",
-          "value": "0.5"
+          "text": "1.0",
+          "value": "1.0"
         },
         "hide": 0,
         "label": "Power Factor",
@@ -507,17 +529,17 @@
         "options": [
           {
             "selected": true,
-            "text": "0.5",
-            "value": "0.5"
+            "text": "1.0",
+            "value": "1.0"
           }
         ],
-        "query": "0.5",
+        "query": "1.0",
         "skipUrlSync": false,
         "type": "textbox"
       },
       {
         "current": {
-          "selected": true,
+          "selected": false,
           "text": "Machine_1",
           "value": "Machine_1"
         },
@@ -541,13 +563,13 @@
     ]
   },
   "time": {
-    "from": "now-5m",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Machine Dashboard",
   "uid": "q39y6tRgk",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }
