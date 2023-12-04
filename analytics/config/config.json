@@ -1,0 +1,19 @@
+{
+	"thresholds":[
+		{
+			"value":0,
+			"threshold":0
+		},
+		{
+			"value":4,
+			"threshold":1000
+		},
+		{
+			"value":6,
+			"threshold":2500
+		}
+	],
+	"down_threshold":3000
+}
+
+

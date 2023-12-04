@@ -1,0 +1,10 @@
+version: '2'
+
+services:
+        app:
+            build: .
+            volumes:
+                - /etc/localtime:/etc/localtime:ro
+                - ./config/ui:/usr/share/nginx/html/config/
+            ports:
+                - "80:80"

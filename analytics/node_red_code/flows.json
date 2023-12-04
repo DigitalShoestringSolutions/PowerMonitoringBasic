@@ -1,0 +1,260 @@
+[
+    {
+        "id": "30145aeb5da7696e",
+        "type": "tab",
+        "label": "Flow 2",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "8633576277f6f36d",
+        "type": "influxdb",
+        "hostname": "127.0.0.1",
+        "port": "8086",
+        "protocol": "http",
+        "database": "database",
+        "name": "",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "2.0",
+        "url": "http://timeseries-db.docker.local:8086",
+        "rejectUnauthorized": true
+    },
+    {
+        "id": "b84e30052c880e7e",
+        "type": "http in",
+        "z": "30145aeb5da7696e",
+        "name": "Reqest",
+        "url": "/single_graph",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 110,
+        "y": 120,
+        "wires": [
+            [
+                "feb696f1b3677065",
+                "7fe0a345ecd89d65"
+            ]
+        ]
+    },
+    {
+        "id": "20712c957f7fc189",
+        "type": "http response",
+        "z": "30145aeb5da7696e",
+        "name": "Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 640,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "f1718a96608d3223",
+        "type": "influxdb in",
+        "z": "30145aeb5da7696e",
+        "influxdb": "8633576277f6f36d",
+        "name": "Influx",
+        "query": "",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "SHOESTRING",
+        "x": 450,
+        "y": 120,
+        "wires": [
+            [
+                "844c9cec72a7e0ff",
+                "20712c957f7fc189"
+            ]
+        ]
+    },
+    {
+        "id": "feb696f1b3677065",
+        "type": "debug",
+        "z": "30145aeb5da7696e",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 280,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "844c9cec72a7e0ff",
+        "type": "debug",
+        "z": "30145aeb5da7696e",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "9c74852e926ea86b",
+        "type": "debug",
+        "z": "30145aeb5da7696e",
+        "name": "Query",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "query",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 450,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "7fe0a345ecd89d65",
+        "type": "template",
+        "z": "30145aeb5da7696e",
+        "name": "Gen Flux",
+        "field": "query",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "import \"date\"\n\nfrom(bucket: \"{{payload.bucket}}\")\n  |> range(start: {{payload.from}}/1000, stop: {{payload.to}}/1000)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"equipment_power_usage\")\n  |> filter(fn: (r) => r[\"_field\"] == \"power\")\n  |> filter(fn: (r) => r[\"machine\"] == \"{{payload.machine}}\")\n  |> aggregateWindow(every: {{payload.period}}, fn: mean, createEmpty: false)",
+        "output": "str",
+        "x": 280,
+        "y": 120,
+        "wires": [
+            [
+                "9c74852e926ea86b",
+                "f1718a96608d3223"
+            ]
+        ]
+    },
+    {
+        "id": "4c4787b4a9985954",
+        "type": "http in",
+        "z": "30145aeb5da7696e",
+        "name": "Reqest",
+        "url": "/all_graph",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 110,
+        "y": 280,
+        "wires": [
+            [
+                "882c9b6f2ac490ae",
+                "e4a6b7b87181655b"
+            ]
+        ]
+    },
+    {
+        "id": "3f11bd5b353453b9",
+        "type": "http response",
+        "z": "30145aeb5da7696e",
+        "name": "Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 640,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "8f12b9370f9e73a0",
+        "type": "influxdb in",
+        "z": "30145aeb5da7696e",
+        "influxdb": "8633576277f6f36d",
+        "name": "Influx",
+        "query": "",
+        "rawOutput": false,
+        "precision": "",
+        "retentionPolicy": "",
+        "org": "SHOESTRING",
+        "x": 450,
+        "y": 280,
+        "wires": [
+            [
+                "7290e12f1a6cee0b",
+                "3f11bd5b353453b9"
+            ]
+        ]
+    },
+    {
+        "id": "882c9b6f2ac490ae",
+        "type": "debug",
+        "z": "30145aeb5da7696e",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 280,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "7290e12f1a6cee0b",
+        "type": "debug",
+        "z": "30145aeb5da7696e",
+        "name": "debug 4",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "1a6935f270650d70",
+        "type": "debug",
+        "z": "30145aeb5da7696e",
+        "name": "Query",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "query",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 450,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "e4a6b7b87181655b",
+        "type": "template",
+        "z": "30145aeb5da7696e",
+        "name": "Gen Flux",
+        "field": "query",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "import \"date\"\n\nfrom(bucket: \"{{payload.bucket}}\")\n  |> range(start: {{payload.from}}/1000, stop: {{payload.to}}/1000)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"equipment_power_usage\")\n  |> filter(fn: (r) => r[\"_field\"] == \"power\")\n  |> aggregateWindow(every: {{payload.period}}, fn: mean, createEmpty: false)\n  |> group(columns: [\"_time\"])\n  |> sum()\n  |> group()",
+        "output": "str",
+        "x": 280,
+        "y": 280,
+        "wires": [
+            [
+                "1a6935f270650d70",
+                "8f12b9370f9e73a0"
+            ]
+        ]
+    }
+]

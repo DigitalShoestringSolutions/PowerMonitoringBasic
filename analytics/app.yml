@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+    app:
+        build: .
+        volumes:
+          - ./node_red_code:/data:rw
+          - ./config:/config:ro
+        ports:
+          - "1880:1880"
+ 
