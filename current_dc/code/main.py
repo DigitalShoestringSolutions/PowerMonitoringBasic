@@ -39,9 +39,22 @@ import zmq
 # local
 import measure
 import wrapper
+import os
+
 
 logger = logging.getLogger("main")
 logging.basicConfig(level=logging.INFO)  # move to log config file using python functionality
+
+def load_config_files(directory):
+    config_files = []
+    for item in os.listdir(directory):
+        if item.endswith(".toml"):
+            file_path = os.path.join(directory, item)
+            logger.info(file_path)
+            with open(file_path, "rb") as file:
+                config = tomli.load(file)
+                config_files.append(config)
+    return config_files
 
 
 def get_config():
@@ -53,19 +66,20 @@ def get_config():
 
 def config_valid(config):
     return True
-
-
-def create_building_blocks(config):
+    
+def create_building_blocks_multi(conf_arr):
+    count = 0
     bbs = {}
-
-    measure_out = {"type": zmq.PUSH, "address": "tcp://127.0.0.1:4000", "bind": True}
-    wrapper_in = {"type": zmq.PULL, "address": "tcp://127.0.0.1:4000", "bind": False}
-
-    bbs["measure"] = measure.CurrentMeasureBuildingBlock(config, measure_out)
-    bbs["wrapper"] = wrapper.MQTTServiceWrapper(config, wrapper_in)
-
+    for config in conf_arr:
+        port = 4000 + count
+        measure_out = {"type": zmq.PUSH, "address": f"tcp://127.0.0.1:{port}", "bind": True}
+        wrapper_in = {"type": zmq.PULL, "address": f"tcp://127.0.0.1:{port}", "bind": False}
+        bbs[f"measure {count}"] = measure.CurrentMeasureBuildingBlock(config, measure_out)
+        bbs[f"wrapper {count}"] = wrapper.MQTTServiceWrapper(config, wrapper_in)
+        count +=1
     logger.debug(f"bbs {bbs}")
     return bbs
+
 
 
 def start_building_blocks(bbs):
@@ -83,11 +97,20 @@ def monitor_building_blocks(bbs):
 
 
 if __name__ == "__main__":
-    conf = get_config()
-    # todo set logging level from config file
-    if config_valid(conf):
-        bbs = create_building_blocks(conf)
+    conf_arr = load_config_files("./config")
+    for conf in conf_arr:
+        logger.info(f"CONFIG: {conf} \n")
+        # todo set logging level from config file
+        if config_valid(conf):
+            logger.info(f"Valid")
+        else:
+            raise Exception("bad config")
+            conf_arr.remove(conf)
+    if len(conf_arr) > 0: 
+        bbs = create_building_blocks_multi(conf_arr)
+        logger.info(bbs)
         start_building_blocks(bbs)
-        monitor_building_blocks(bbs)
     else:
-        raise Exception("bad config")
+        raise Exception("no valid config files")
+        logger.info(len(conf_arr))
+            
