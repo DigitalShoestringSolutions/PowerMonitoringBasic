@@ -2,7 +2,10 @@ paho-mqtt==1.6.1
 chevron==0.14.0
 tomli==2.0.1
 pyzmq==23.2.1
-smbus2
-bcr-libraries
-spidev
-rpi.gpio
+jsonpath-rw==1.4.0
+packaging==23.2 
+
+# smbus2==0.4.3
+# spidev==3.6
+# pyserial==3.5
+# pymodbus==3.5.4

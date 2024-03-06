@@ -24,7 +24,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 7,
+  "id": 3,
   "links": [
     {
       "asDropdown": true,
@@ -142,7 +142,7 @@
             "uid": "influxdb"
           },
           "hide": false,
-          "query": "myWindow = if int(v: v.windowPeriod) > int(v: 2s) then v.windowPeriod else 2s\r\n\r\nfrom(bucket: \"${const_bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"equipment_power_usage\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"current\")\r\n  |> aggregateWindow(every: myWindow, fn: mean, createEmpty: false)\r\n  |> pivot(columnKey: [\"_field\"], rowKey: [\"_time\"], valueColumn: \"_value\")\r\n  |> group(columns: [\"machine\"])\r\n  |> keep(columns: [\"power\",\"current\",\"_time\",\"machine\"])",
+          "query": "myWindow = if int(v: v.windowPeriod) > int(v: 2s) then v.windowPeriod else 2s\r\n\r\nfrom(bucket: \"${const_bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"equipment_power_usage\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"current\")\r\n  |> aggregateWindow(every: myWindow, fn: mean, createEmpty: false)\r\n  |> pivot(columnKey: [\"_field\"], rowKey: [\"_time\"], valueColumn: \"_value\")\r\n  |> group(columns: [\"machine\",\"_time\"])\r\n  |> sum(column: \"current\")\r\n  |> group(columns: [\"machine\"])\r\n  |> keep(columns: [\"current\",\"_time\",\"machine\"])",
           "refId": "B"
         }
       ],
@@ -367,8 +367,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           },
@@ -515,13 +514,13 @@
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Historic (All)",
   "uid": "sPrzJ-nSk",
-  "version": 10,
+  "version": 2,
   "weekStart": ""
 }

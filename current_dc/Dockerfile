@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------
 #
-#    Dockerfile script -- This file is part of the Power Monitoring (Basic 
-#    solution) distribution. It contains all the commands needed to 
+#    Dockerfile script -- This file is part of the Sensing Data Collection 
+#    Service Module distribution. It contains all the commands needed to 
 #    assemble an image of the solution on a Raspberry Pi 4b with raspbian 
 #    OS version 11 (bullseye) 32 bits. 
 #
@@ -25,8 +25,8 @@ FROM python:3.9
 
 COPY ./requirements.txt /
 RUN pip3 install -r requirements.txt
-RUN git clone https://github.com/DigitalShoestringSolutions/grove.py /grove && cd /grove && pip3 install . && rm -r /grove
 WORKDIR /app
 ADD ./code/ /app
+RUN python utilities/generate_local_requirements.py && pip3 install -r generated_requirements.txt
 
 CMD [ "python3", "/app/main.py"]

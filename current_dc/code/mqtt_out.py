@@ -1,30 +1,3 @@
-# ----------------------------------------------------------------------
-#
-#    Power Monitoring (Basic solution) -- This digital solution measures,
-#    reports and records both AC power and current consumed by an electrical 
-#    equipment, so that its energy consumption can be understood and 
-#    taken action upon. This version comes with one current transformer 
-#    clamp of 20A that is buckled up to the electric line the equipment 
-#    is connected to. The solution provides a Grafana dashboard that 
-#    displays current and power consumption, and an InfluxDB database 
-#    to store timestamp, current and power. 
-#
-#    Copyright (C) 2022  Shoestring and University of Cambridge
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, version 3 of the License.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see https://www.gnu.org/licenses/.
-#
-# ----------------------------------------------------------------------
-
 import paho.mqtt.client as mqtt
 import multiprocessing
 import logging
@@ -32,11 +5,19 @@ import zmq
 import json
 import chevron
 import time
+import signal
 from urllib.parse import urljoin
 
 context = zmq.Context()
-logger = logging.getLogger("main.wrapper")
+logger = logging.getLogger("main.mqtt_out")
 
+terminate_flag = False
+
+def graceful_signal_handler(sig, _frame):
+    logger.info(f'Received {signal.Signals(sig).name}. Triggering graceful termination.')
+    global terminate_flag
+    terminate_flag = True
+    signal.alarm(10)
 
 class MQTTServiceWrapper(multiprocessing.Process):
     def __init__(self, config, zmq_conf):
@@ -46,12 +27,11 @@ class MQTTServiceWrapper(multiprocessing.Process):
         self.url = mqtt_conf['broker']
         self.port = int(mqtt_conf['port'])
 
-        self.topic_base = mqtt_conf['base_topic_template']
+        self.topic_base = mqtt_conf.get('base_topic_template',"")
 
-        self.initial = mqtt_conf['reconnect']['initial']
-        self.backoff = mqtt_conf['reconnect']['backoff']
-        self.limit = mqtt_conf['reconnect']['limit']
-        self.constants = config['constants']
+        self.initial = mqtt_conf['reconnect'].get('initial',5)
+        self.backoff = mqtt_conf['reconnect'].get('backoff',2)
+        self.limit = mqtt_conf['reconnect'].get('limit',60)
 
         # declarations
         self.zmq_conf = zmq_conf
@@ -67,7 +47,7 @@ class MQTTServiceWrapper(multiprocessing.Process):
     def mqtt_connect(self, client, first_time=False):
         timeout = self.initial
         exceptions = True
-        while exceptions:
+        while exceptions and terminate_flag is False:
             try:
                 if first_time:
                     client.connect(self.url, self.port, 60)
@@ -91,6 +71,8 @@ class MQTTServiceWrapper(multiprocessing.Process):
             self.mqtt_connect(client)
 
     def run(self):
+        signal.signal(signal.SIGINT, graceful_signal_handler)
+        signal.signal(signal.SIGTERM, graceful_signal_handler)
         self.do_connect()
 
         client = mqtt.Client()
@@ -102,17 +84,18 @@ class MQTTServiceWrapper(multiprocessing.Process):
         logger.info(f'connecting to {self.url}:{self.port}')
         self.mqtt_connect(client, True)
 
-        run = True
-        while run:
+
+        while terminate_flag is False:
             while self.zmq_in.poll(50, zmq.POLLIN):
                 try:
                     msg = self.zmq_in.recv(zmq.NOBLOCK)
                     msg_json = json.loads(msg)
                     msg_path = msg_json['path']
                     msg_payload = msg_json['payload']
-                    topic = chevron.render(urljoin(self.topic_base, msg_path), {**msg_payload, **self.constants})
-                    logger.debug(f'pub topic:{topic} msg:{msg_payload}')
+                    topic = chevron.render(urljoin(self.topic_base, msg_path), msg_payload)
+                    logger.info(f'pub topic:{topic} msg:{msg_payload}')
                     client.publish(topic, json.dumps(msg_payload))
                 except zmq.ZMQError:
                     pass
             client.loop(0.05)
+        logger.info("Done")

@@ -3,6 +3,9 @@ version: "2"
 services:
     app:
         build: .
+        command: ["python","main.py","--log","debug"]
         privileged: true
         volumes:
             - ./config:/app/config
+        environment:
+            - DCSM_CONFIG=/app/config/pm_b_3pu.toml

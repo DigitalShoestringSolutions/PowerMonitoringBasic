@@ -1,0 +1,103 @@
+#=-= Define Interface Modules =-=
+[interface.i2c0]
+    module="i2c"
+    class="I2C"
+[interface.i2c0.config]
+    bus=1
+    addr=0x48
+
+#=-= Define Device Modules =-=
+#[device.adc_0]
+#    module="adc_ADS111X"
+#    class="ADS1115"
+#    interface="i2c0"
+#[device.adc_0.config]
+#    adc_channel=1
+#[device.adc_0.variables]
+#    v_in = "v_amp_out"
+
+[device.adc_0]
+    module="adc_grove"
+    class="PiHat"
+    interface="i2c0"
+[device.adc_0.config]
+    adc_channel=3
+[device.adc_0.variables]
+    v_in = "v_amp_out"
+
+#=-= Define Calculation Modules =-=
+[calculation.power]
+    module="gen_electrical"
+    class="PowerToCurrent"
+[calculation.power.config]
+    line_voltage = 230
+    phases = 1
+[calculation.power.variables]
+    power_in = "power"
+    rms_current_out = "current_rms"
+
+[calculation.rms_current]
+    module="gen_electrical"
+    class="RMSToPeak"
+[calculation.rms_current.variables]
+    var_in = "current_rms"
+    var_out = "clamp_current"
+
+[calculation.current_clamp]
+    module="gen_current_clamp"
+    class="VoltageClamp"
+[calculation.current_clamp.config]
+    nominal_current = 20
+[calculation.current_clamp.variables]
+    current_in = "clamp_current"
+    voltage_out = "v_amp_in"
+
+[calculation.amplifier]
+    module="gen_amplifier"
+    class="GenAmplifier"
+[calculation.amplifier.config]
+    gain = 2
+[calculation.amplifier.variables]
+    amp_input = "v_amp_in"
+    amp_output = "v_amp_out"
+
+#=-= Define Calculation Pipelines =-=
+[pipelines]
+    single_clamp = ["power","rms_current","current_clamp","amplifier"]
+
+#=-= Define Measurements Pipelines =-=
+[measurement]
+    module="gen_sample"
+    class="SingleSampleAvg"
+[measurement.config]
+    period = 1.0 # seconds
+    n_samples = 5
+[[measurement.sensing_stacks]]
+    device = "adc_0"
+    pipeline = "single_clamp"
+    constants = {'phase'='single'}
+
+[output.overall]
+    path = "power_monitoring/{{machine}}/{{phase}}"
+[output.overall.spec]
+    timestamp = '$.timestamp'
+    power = '$.power'
+    current = "$.current_rms"
+    phase = "$.phase"
+    machine="#Machine_1"
+
+
+[mqtt]
+    broker = "mqtt.docker.local"
+    port = 1883   #common mqtt ports are 1883 and 8883
+    base_topic_template = ""
+
+    #reconnection characteristics
+    # start: timeout = initial,
+    # if timeout < limit then
+    #   timeout = timeout*backoff
+    # else
+    #   timeout = limit
+    reconnect.initial = 5 # seconds
+    reconnect.backoff = 2 # multiplier
+    reconnect.limit = 60 # seconds

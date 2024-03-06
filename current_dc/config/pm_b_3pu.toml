@@ -1,0 +1,127 @@
+#=-= Define Interface Modules =-=
+[interface.spi0]
+    module="spi"
+    class="SPI"
+[interface.spi0.config]
+    bus=0
+    device=0
+    speed=1000000
+    mode=0
+[interface.spi1]
+    module="spi"
+    class="SPI"
+[interface.spi1.config]
+    bus=0
+    device=1
+    speed=1000000
+    mode=0
+
+#=-= Define Device Modules =-=
+[device.adc_0]
+    module="adc_MCP300X"
+    class="MCP3008"
+    interface="spi0"
+[device.adc_0.config]
+    adc_channel=0
+[device.adc_0.variables]
+    v_in = "v_amp_out"
+
+[device.adc_1]
+    module="adc_MCP300X"
+    class="MCP3008"
+    interface="spi0"
+[device.adc_1.config]
+    adc_channel=2
+[device.adc_1.variables]
+    v_in = "v_amp_out"
+
+[device.adc_2]
+    module="adc_MCP300X"
+    class="MCP3008"
+    interface="spi0"
+[device.adc_2.config]
+    adc_channel=4
+[device.adc_2.variables]
+    v_in = "v_amp_out"
+
+#=-= Define Calculation Modules =-=
+[calculation.rms_current]
+    module="gen_electrical"
+    class="RMSToPeak"
+[calculation.rms_current.variables]
+    var_in = "current_rms"
+    var_out = "clamp_current"
+
+[calculation.current_clamp]
+    module="gen_current_clamp"
+    class="VoltageClamp"
+[calculation.current_clamp.config]
+    nominal_current = 10
+[calculation.current_clamp.variables]
+    current_in = "clamp_current"
+    voltage_out = "v_amp_in"
+
+[calculation.amplifier]
+    module="gen_amplifier"
+    class="GenAmplifier"
+[calculation.amplifier.config]
+    gain = 2
+[calculation.amplifier.variables]
+    amp_input = "v_amp_in"
+    amp_output = "v_amp_out"
+
+#=-= Define Calculation Pipelines =-=
+[pipelines]
+    rms_current = ["rms_current","current_clamp","amplifier"]
+
+#=-= Define Measurements Pipelines =-=
+[measurement]
+    module="gen_sample"
+    class="MultiSampleIndividualAvg"
+[measurement.config]
+    period = 1.0 # seconds
+    n_samples = 5
+[[measurement.sensing_stacks]]
+    device = "adc_0"
+    pipeline = "rms_current"
+    constants = {'phase'='A'}
+[[measurement.sensing_stacks]]
+    device = "adc_1"
+    pipeline = "rms_current"
+    constants = {'phase'='B'}
+[[measurement.sensing_stacks]]
+    device = "adc_2"
+    pipeline = "rms_current"
+    constants = {'phase'='C'}
+
+# [output.overall]
+#     path = "power_monitoring/{{machine}}/{{phase}}"
+# [output.overall.spec]
+#     timestamp = '$.timestamp'
+#     power = '$.power'
+#     current = "$.current_rms"
+#     phase = "$.phase"
+#     machine="#Machine_1"
+
+[output.phase]
+    path = "power_monitoring/{{machine}}/{{phase}}"
+[output.phase.spec]
+    machine = "#Machine_1"
+    timestamp = '$.timestamp'
+    current = "$.current_rms"
+    phase = "$.phase"
+
+[mqtt]
+    broker = "mqtt.docker.local"
+    port = 1883   #common mqtt ports are 1883 and 8883
+    base_topic_template = ""
+
+    #reconnection characteristics
+    # start: timeout = initial,
+    # if timeout < limit then
+    #   timeout = timeout*backoff
+    # else
+    #   timeout = limit
+    reconnect.initial = 5 # seconds
+    reconnect.backoff = 2 # multiplier
+    reconnect.limit = 60 # seconds
